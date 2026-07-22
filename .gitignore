@@ -1,0 +1,4 @@
+# Ignored files for the Go backend and static assets
+server
+go_output.log
+.DS_Store

@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATM Project & Support Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome for professional icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase Compat SDKs (as requested: using compat v9 SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen selection:bg-emerald-500 selection:text-white">
+
+    <!-- Header Section -->
+    <header class="bg-gray-800 border-b border-gray-700 p-6 sticky top-0 z-40 shadow-md">
+        <div class="max-w-[1800px] mx-auto flex flex-col lg:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <div class="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 text-emerald-400 text-3xl">
+                    <i class="fa-solid fa-square-poll-vertical"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-white tracking-wide">ATM Project & Support Real-time Dashboard</h1>
+                    <p class="text-sm text-gray-400 flex items-center gap-2">
+                        <span><i class="fa-solid fa-laptop-code text-emerald-500"></i> Weekly Worklog & Task Management System</span>
+                        <span class="text-gray-600">|</span>
+                        <span id="connection-status" class="text-xs text-yellow-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Initializing DB...</span>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Export CSV Button -->
+                <button onclick="exportToCSV()" class="bg-gray-700 hover:bg-gray-600 text-gray-100 border border-gray-600 px-4 py-2.5 rounded-lg font-semibold transition flex items-center gap-2 shadow-lg text-sm">
+                    <i class="fa-solid fa-file-csv text-emerald-400 text-base"></i> Export to CSV
+                </button>
+                
+                <!-- Add New Button -->
+                <button onclick="openModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-lg font-semibold transition flex items-center gap-2 shadow-lg text-sm">
+                    <i class="fa-solid fa-plus text-base"></i> Add Project / Issue
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- SPA Gorgeous Detailed Project View overlay -->
+    <div id="detail-view" class="hidden min-h-screen bg-gray-900 text-gray-100 p-4 md:p-8 animate-fade-in">
+        <div class="max-w-6xl mx-auto space-y-6">
+            <!-- Breadcrumbs / Header Actions -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-xl">
+                <div class="flex items-center gap-3">
+                    <button onclick="closeProjectDetails()" class="bg-gray-700 hover:bg-gray-600 text-white p-2.5 rounded-lg border border-gray-600 transition flex items-center justify-center">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div>
+                        <span id="detail-badge-bank" class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">-</span>
+                        <h2 id="detail-title-project" class="text-xl font-bold text-white tracking-wide mt-1">-</h2>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button id="detail-btn-edit" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-lg font-semibold transition flex items-center justify-center gap-2 text-sm shadow-md">
+                        <i class="fa-solid fa-pen-to-square text-base"></i> Edit Project
+                    </button>
+                    <button onclick="closeProjectDetails()" class="flex-1 sm:flex-none bg-gray-700 hover:bg-gray-600 text-gray-100 border border-gray-600 px-5 py-2.5 rounded-lg font-semibold transition flex items-center justify-center gap-2 text-sm">
+                        Back to Dashboard
+                    </button>
+                </div>
+            </div>
+
+            <!-- Detailed Cards Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Main Column (Core content fields) -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Project Core Card -->
+                    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl space-y-4">
+                        <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider border-b border-gray-700 pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-info"></i> Project Core Description
+                        </h3>
+                        <div>
+                            <span class="text-xs text-gray-500 font-bold uppercase block mb-1">Description</span>
+                            <div id="detail-val-description" class="text-sm text-gray-300 bg-gray-900/60 p-4 rounded-lg border border-gray-700/40 whitespace-pre-line leading-relaxed">-</div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-xs text-gray-500 font-bold uppercase block mb-1">Current Status</span>
+                                <div id="detail-val-current-status" class="text-sm text-gray-300 bg-gray-900/60 p-4 rounded-lg border border-gray-700/40 whitespace-pre-line leading-relaxed">-</div>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 font-bold uppercase block mb-1">Solution</span>
+                                <div id="detail-val-solutions" class="text-sm text-gray-300 bg-gray-900/60 p-4 rounded-lg border border-gray-700/40 whitespace-pre-line leading-relaxed">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Weekly Activities Card with Append capability -->
+                    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl space-y-4">
+                        <div class="flex justify-between items-center border-b border-gray-700 pb-2">
+                            <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-week"></i> Weekly Activity Progress Log
+                            </h3>
+                        </div>
+                        <div id="detail-val-weekly-activity" class="text-sm text-emerald-400 font-mono bg-emerald-500/[0.02] p-4 rounded-lg border border-emerald-500/10 whitespace-pre-line leading-relaxed max-h-[300px] overflow-y-auto">-</div>
+
+                        <!-- Quick Weekly Log Append Form -->
+                        <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700/50 space-y-3 mt-4">
+                            <span class="text-xs font-bold text-gray-400 uppercase flex items-center gap-1.5">
+                                <i class="fa-solid fa-pencil text-emerald-500"></i> Quick Append Weekly Activity
+                            </span>
+                            <div class="flex gap-2">
+                                <input type="text" id="quick-activity-input" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 transition" placeholder="Type weekly update (e.g., PS team fixed CRM issue)...">
+                                <button onclick="quickAppendWeeklyActivity()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0">
+                                    <i class="fa-solid fa-plus"></i> Append
+                                </button>
+                            </div>
+                            <p class="text-[10px] text-gray-500">Automatically prefixes with current day & month, e.g., <code class="bg-gray-800 px-1 py-0.5 rounded text-gray-400 font-mono font-semibold">[09Jul]:</code></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column (Metadata, Dates, KPIs) -->
+                <div class="space-y-6">
+                    <!-- Project Status Card -->
+                    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl space-y-4">
+                        <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider border-b border-gray-700 pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-tags"></i> Metadata & KPIs
+                        </h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-xs text-gray-500 font-bold uppercase block mb-0.5">Project ID</span>
+                                <div id="detail-val-pj-id" class="text-sm font-mono text-gray-300 font-bold">-</div>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 font-bold uppercase block mb-0.5">Priority</span>
+                                <span id="detail-badge-priority" class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border mt-0.5">-</span>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 font-bold uppercase block mb-0.5">Project Type</span>
+                                <span id="detail-badge-pj-type" class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold mt-0.5">-</span>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 font-bold uppercase block mb-0.5">Current Status</span>
+                                <span id="detail-badge-status" class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold mt-0.5">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stakeholders & Assignment Card -->
+                    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl space-y-4">
+                        <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider border-b border-gray-700 pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-users"></i> Assignments
+                        </h3>
+                        <div class="space-y-3">
+                            <div>
+                                <span class="text-xs text-gray-500 font-bold uppercase block mb-0.5">Action By</span>
+                                <div id="detail-val-action-by" class="text-sm text-gray-300 font-semibold">-</div>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 font-bold uppercase block mb-0.5">Pending By</span>
+                                <div id="detail-val-pending-by" class="text-sm text-gray-300 font-semibold">-</div>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 font-bold uppercase block mb-0.5">Reference</span>
+                                <div id="detail-val-reference" class="text-sm text-gray-300 font-semibold">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Card -->
+                    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl space-y-4">
+                        <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider border-b border-gray-700 pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-clock"></i> Project Timeline
+                        </h3>
+                        <div class="space-y-3">
+                            <div>
+                                <span class="text-xs text-gray-500 font-bold uppercase block mb-0.5">Start Date</span>
+                                <div id="detail-val-project-date" class="text-sm text-gray-300 font-mono font-semibold">-</div>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 font-bold uppercase block mb-0.5">Target Date</span>
+                                <div id="detail-val-target-date" class="text-sm text-gray-300 font-mono font-semibold">-</div>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 font-bold uppercase block mb-0.5">Follow Up Action</span>
+                                <div id="detail-val-follow" class="text-sm text-gray-300 whitespace-pre-line leading-relaxed">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Remarks Card -->
+                    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl space-y-4">
+                        <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider border-b border-gray-700 pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-comment-dots"></i> Remarks
+                        </h3>
+                        <div id="detail-val-remark" class="text-sm text-gray-300 whitespace-pre-line leading-relaxed">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard View Container -->
+    <div id="dashboard-view">
+        <main class="space-y-6 max-w-[1800px] mx-auto p-4 md:p-6 pb-20">
+
+        <!-- 3 Charts Section (In Progress, Hold, Close) -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Chart 1: In Progress -->
+            <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-xl transition-transform-quick flex flex-col items-center">
+                <div class="flex items-center justify-between w-full mb-3 border-b border-gray-700/50 pb-2">
+                    <span class="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                        In Progress Overview
+                    </span>
+                    <span id="stat-count-in-progress" class="bg-emerald-500/10 text-emerald-400 text-xs px-2 py-0.5 rounded-full font-bold border border-emerald-500/20">0 PJ</span>
+                </div>
+                <div class="relative w-full h-[180px] flex items-center justify-center">
+                    <canvas id="chart-in-progress"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 2: Hold -->
+            <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-xl transition-transform-quick flex flex-col items-center">
+                <div class="flex items-center justify-between w-full mb-3 border-b border-gray-700/50 pb-2">
+                    <span class="text-sm font-bold text-amber-400 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                        On Hold Overview
+                    </span>
+                    <span id="stat-count-hold" class="bg-amber-500/10 text-amber-400 text-xs px-2 py-0.5 rounded-full font-bold border border-amber-500/20">0 PJ</span>
+                </div>
+                <div class="relative w-full h-[180px] flex items-center justify-center">
+                    <canvas id="chart-hold"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 3: Close -->
+            <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-xl transition-transform-quick flex flex-col items-center">
+                <div class="flex items-center justify-between w-full mb-3 border-b border-gray-700/50 pb-2">
+                    <span class="text-sm font-bold text-indigo-400 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                        Closed Overview
+                    </span>
+                    <span id="stat-count-close" class="bg-indigo-500/10 text-indigo-400 text-xs px-2 py-0.5 rounded-full font-bold border border-indigo-500/20">0 PJ</span>
+                </div>
+                <div class="relative w-full h-[180px] flex items-center justify-center">
+                    <canvas id="chart-close"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search, Filter & Tabs Section -->
+        <section class="bg-gray-800 border border-gray-700 rounded-xl p-4 md:p-6 shadow-xl space-y-4">
+            
+            <!-- Filters Controls -->
+            <div class="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
+                <!-- Tabs: Status -->
+                <div class="flex bg-gray-900/80 p-1.5 rounded-xl border border-gray-700/50 shadow-inner w-full lg:w-auto min-w-[320px]">
+                    <button onclick="switchTab('In progress')" id="tab-In-progress" class="flex-1 lg:flex-none px-6 py-2.5 text-xs md:text-sm font-semibold rounded-lg transition duration-200 shadow-md">
+                        <i class="fa-solid fa-bars-progress mr-1.5 text-xs"></i> In Progress
+                    </button>
+                    <button onclick="switchTab('Hold')" id="tab-Hold" class="flex-1 lg:flex-none px-6 py-2.5 text-xs md:text-sm font-semibold rounded-lg transition duration-200">
+                        <i class="fa-solid fa-pause mr-1.5 text-xs"></i> Hold
+                    </button>
+                    <button onclick="switchTab('Close')" id="tab-Close" class="flex-1 lg:flex-none px-6 py-2.5 text-xs md:text-sm font-semibold rounded-lg transition duration-200">
+                        <i class="fa-solid fa-circle-check mr-1.5 text-xs"></i> Closed
+                    </button>
+                </div>
+
+                <!-- Live Search and Advanced Filters -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex items-center gap-3 w-full lg:w-auto">
+                    <!-- Search Input -->
+                    <div class="relative w-full lg:w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input type="text" id="filter-search" oninput="applyFilters()" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-9 pr-3 py-2 text-xs md:text-sm text-white focus:outline-none focus:border-emerald-500 transition placeholder:text-gray-500" placeholder="Search project/issue...">
+                    </div>
+
+                    <!-- Bank Filter -->
+                    <select id="filter-bank" onchange="applyFilters()" class="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs md:text-sm text-gray-300 focus:outline-none focus:border-emerald-500 transition">
+                        <option value="">All Banks</option>
+                        <option value="BCEL">BCEL</option>
+                        <option value="LVB">LVB</option>
+                        <option value="BFL">BFL</option>
+                        <option value="PBB">PBB</option>
+                        <option value="LDB">LDB</option>
+                        <option value="VTB">VTB</option>
+                        <option value="STB">STB</option>
+                    </select>
+
+                    <!-- Priority Filter -->
+                    <select id="filter-priority" onchange="applyFilters()" class="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs md:text-sm text-gray-300 focus:outline-none focus:border-emerald-500 transition">
+                        <option value="">All Priorities</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+
+                    <!-- Type Filter -->
+                    <select id="filter-type" onchange="applyFilters()" class="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs md:text-sm text-gray-300 focus:outline-none focus:border-emerald-500 transition">
+                        <option value="">All Types</option>
+                        <option value="PPR">PPR (Production)</option>
+                        <option value="PROJ">PROJ (Project)</option>
+                        <option value="MNT">MNT (Maintenance)</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Table Container with Only "Red Mark Only" Columns -->
+            <div class="bg-gray-900 rounded-xl border border-gray-700 overflow-hidden shadow-inner">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[1200px]">
+                        <thead>
+                            <tr class="bg-gray-800 border-b border-gray-700 text-gray-400 text-[11px] font-bold uppercase tracking-wider">
+                                <th class="p-4 w-28">Bank</th>
+                                <th class="p-4 w-28">No of PJ</th>
+                                <th class="p-4 w-80">Project / Issue</th>
+                                <th class="p-4 w-80">Current Status</th>
+                                <th class="p-4 w-28">Type</th>
+                                <th class="p-4 w-28">Priority</th>
+                                <th class="p-4 w-28">Status</th>
+                                <th class="p-4 w-36">Action By</th>
+                                <th class="p-4 w-32">Start Date</th>
+                                <th class="p-4 w-32">Target Date</th>
+                                <th class="p-4 w-24 text-center sticky right-0 bg-gray-800 shadow-lg z-10">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="divide-y divide-gray-800 text-[11px] text-gray-300">
+                            <tr>
+                                <td colspan="11" class="p-8 text-center text-gray-500">
+                                    <i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading real-time data from Firebase...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+    </div> <!-- Close dashboard-view -->
+
+    <!-- Modal Form (Handles all 17 fields) -->
+    <div id="data-modal" class="hidden fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-gray-800 border border-gray-700 rounded-xl max-w-4xl w-full p-6 my-8 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex justify-between items-center border-b border-gray-700 pb-3">
+                <h3 id="modal-title" class="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                    <i class="fa-solid fa-folder-plus text-xl"></i> Add Project / Issue Info
+                </h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <input type="hidden" id="item-id">
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Bank Dropdown -->
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Bank</label>
+                    <select id="form-bank" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition">
+                        <option value="BCEL">BCEL</option>
+                        <option value="LVB">LVB</option>
+                        <option value="BFL">BFL</option>
+                        <option value="PBB">PBB</option>
+                        <option value="LDB">LDB</option>
+                        <option value="VTB">VTB</option>
+                        <option value="STB">STB</option>
+                    </select>
+                </div>
+
+                <!-- No of PJ (Project ID) -->
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">No of PJ (ID)</label>
+                    <input type="text" id="form-pj-id" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition" placeholder="e.g. 1, 2, 3...">
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Status</label>
+                    <select id="form-status" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition">
+                        <option value="In progress">In progress</option>
+                        <option value="Hold">Hold</option>
+                        <option value="Close">Close</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Project/Issue and Type / Priority / Action By -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div class="md:col-span-6">
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Project/Issue</label>
+                    <input type="text" id="form-project" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition" placeholder="Short name / title">
+                </div>
+                
+                <div class="md:col-span-3">
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Project Type</label>
+                    <select id="form-pj-type" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition">
+                        <option value="PPR">PPR (Production Issue)</option>
+                        <option value="PROJ">PROJ (Project)</option>
+                        <option value="MNT">MNT (Maintenance)</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="md:col-span-3">
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Priority</label>
+                    <select id="form-priority" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition">
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Description</label>
+                <textarea id="form-description" rows="2" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition" placeholder="Describe the project or issue..."></textarea>
+            </div>
+
+            <!-- Current Status & Solution (Only shown when editing, hidden on creation as before but dynamically toggled) -->
+            <div id="status-solutions-section" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Current Status</label>
+                    <textarea id="form-current-status" rows="2" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition" placeholder="Current state of work..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Solution</label>
+                    <textarea id="form-solutions" rows="2" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition" placeholder="Root cause solution or plans..."></textarea>
+                </div>
+            </div>
+
+            <!-- Action By, Pending By, Reference -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Action By</label>
+                    <input type="text" id="form-action-by" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition" placeholder="e.g. Primesys/BCEL">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Pending By</label>
+                    <input type="text" id="form-pending-by" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition" placeholder="e.g. HCS / Primesys">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Reference</label>
+                    <input type="text" id="form-reference" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition" placeholder="e.g. Obee/Chouang">
+                </div>
+            </div>
+
+            <!-- Start Date & Target Date -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Project Start Date</label>
+                    <input type="text" id="form-project-date" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition" placeholder="e.g. 25-May-26 or YYYY-MM-DD">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Target Date to Finish</label>
+                    <input type="text" id="form-target-date" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition" placeholder="e.g. 17-Jul-26 or YYYY-MM-DD">
+                </div>
+            </div>
+
+            <!-- Weekly Activity, Follow, REMARK -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Weekly Activity</label>
+                    <textarea id="form-weekly-activity" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition placeholder:text-gray-600" placeholder="[07Jul]: HCS team...&#10;[08Jul]: PS team..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Follow</label>
+                    <textarea id="form-follow" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition" placeholder="Next follow up actions..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">REMARK</label>
+                    <textarea id="form-remark" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition" placeholder="Any general remark..."></textarea>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-700">
+                <button onclick="closeModal()" class="px-5 py-2.5 rounded-lg text-gray-400 hover:bg-gray-700 transition text-xs font-semibold">
+                    Cancel
+                </button>
+                <button onclick="saveData()" class="px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition text-xs shadow-lg">
+                    Save Record
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Javascript logic -->
+    <script src="js/app.js"></script>
+</body>
+</html>

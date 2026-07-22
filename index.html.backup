@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATM Project & Support Real-time Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
+
+    <script>
+        // 1. ຕັ້ງຄ່າການເຊື່ອມຕໍ່ Firebase
+        // ⚠️ ເອົາຄ່າ Firebase Config ທີ່ເຈົ້າໄດ້ຈາກການສະໝັກມາແທນບ່ອນນີ້ເລີຍ:
+        const firebaseConfig = {
+            apiKey: "AIzaSyBmODvMgq46_hKkbIbyXI041GZ0tuicxZI",
+            authDomain: "software-report-dashboard.firebaseapp.com",
+            projectId: "software-report-dashboard",
+            storageBucket: "software-report-dashboard.firebasestorage.app",
+            messagingSenderId: "502005539016",
+            appId: "1:502005539016:web:23e901315469a0a42ac5fd",
+            measurementId: "G-QYYC564LDN"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+    </script>
+
+    <header class="bg-gray-800 border-b border-gray-700 p-6 sticky top-0 z-40 shadow-md">
+        <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-emerald-400">ATM Project & Support Dashboard</h1>
+                <p class="text-sm text-gray-400">ລະບົບຈັດການ ແລະ ຕິດຕາມວຽກງານສະນັບສະໜູນຊອບແວແບບ Real-time</p>
+            </div>
+            <button onclick="openModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-lg font-medium transition flex items-center gap-2 shadow-lg text-sm">
+                <span>+ ເພີ່ມໂຄງການ / Issue ໃໝ່</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-[1600px] mx-auto p-4 md:p-6 space-y-6">
+        
+        <div class="flex border-b border-gray-700 bg-gray-800 p-2 rounded-xl shadow-inner">
+            <button onclick="switchTab('In progress')" id="tab-In-progress" class="flex-1 py-3 text-center font-medium rounded-lg bg-emerald-600 text-white transition shadow-md">In progress</button>
+            <button onclick="switchTab('Hold')" id="tab-Hold" class="flex-1 py-3 text-center font-medium rounded-lg text-gray-400 hover:text-gray-200 transition">Hold</button>
+            <button onclick="switchTab('Close')" id="tab-Close" class="flex-1 py-3 text-center font-medium rounded-lg text-gray-400 hover:text-gray-200 transition">Close</button>
+        </div>
+
+        <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[1300px]">
+                    <thead>
+                        <tr class="bg-gray-700/50 border-b border-gray-700 text-gray-300 text-xs font-bold uppercase tracking-wider">
+                            <th class="p-4 w-24">Bank</th>
+                            <th class="p-4 w-24">PJ ID</th>
+                            <th class="p-4 w-56">Project / Issue</th>
+                            <th class="p-4 w-64">Description</th>
+                            <th class="p-4 w-64">Current Status</th>
+                            <th class="p-4 w-64">Solutions</th>
+                            <th class="p-4 w-24">Type</th>
+                            <th class="p-4 w-24">Priority</th>
+                            <th class="p-4 w-32">Action By</th>
+                            <th class="p-4 w-28">Project Date</th>
+                            <th class="p-4 w-28">Target Date</th>
+                            <th class="p-4 w-32">Reference</th>
+                            <th class="p-4 w-20 text-center sticky right-0 bg-gray-800 shadow-md">Manage</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="divide-y divide-gray-700 text-xs text-gray-300">
+                        <tr>
+                            <td colspan="13" class="p-8 text-center text-gray-500">ກຳລັງໂຫຼດຂໍ້ມູນຈາກ Firebase...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="data-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-gray-800 border border-gray-700 rounded-xl max-w-2xl w-full p-6 my-8 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <h3 id="modal-title" class="text-xl font-bold text-emerald-400 border-b border-gray-700 pb-2">ເພີ່ມຂໍ້ມູນໂຄງການ</h3>
+            <input type="hidden" id="item-id">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">ທະນາຄານ (Bank)</label>
+                    <select id="form-bank" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500">
+                        <option value="BCEL">BCEL</option>
+                        <option value="LVB">LVB</option>
+                        <option value="BFL">BFL</option>
+                        <option value="PBB">PBB</option>
+                        <option value="LDB">LDB</option>
+                        <option value="VTB">VTB</option>
+                        <option value="STB">STB</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">Project ID (PJ Id)</label>
+                    <input type="text" id="form-pj-id" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500" placeholder="ຕົວຢ່າງ: 1, 2, 3...">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">ຊື່ໂຄງການ / ບັນຫາ (Project/Issue)</label>
+                <input type="text" id="form-project" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">ລາຍລະອຽດ (Description)</label>
+                <textarea id="form-description" rows="2" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500"></textarea>
+            </div>
+
+            <div id="status-solutions-section" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">ສະຖານະປະຈຸບັນ (Current Status)</label>
+                    <textarea id="form-current-status" rows="2" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">ວິທີແກ້ໄຂ (Solutions)</label>
+                    <textarea id="form-solutions" rows="2" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500"></textarea>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">Project Type</label>
+                    <select id="form-pj-type" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500">
+                        <option value="MNT">MNT (Maintenance)</option>
+                        <option value="PPR">PPR (Production Issue)</option>
+                        <option value="PRJ">PRJ (Project)</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">Priority</label>
+                    <select id="form-priority" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500">
+                        <option value="Low">Low</option>
+                        <option value="Midium">Midium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">Status</label>
+                    <select id="form-status" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500">
+                        <option value="In progress">In progress</option>
+                        <option value="Hold">Hold</option>
+                        <option value="Close">Close</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">ຜູ້ຮັບຜິດຊອບ (Action by)</label>
+                    <input type="text" id="form-action-by" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">Reference</label>
+                    <input type="text" id="form-reference" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">ວັນທີໂຄງການ (Project date)</label>
+                    <input type="date" id="form-project-date" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">ວັນທີສິ້ນສຸດ (Target date)</label>
+                    <input type="date" id="form-target-date" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-700">
+                <button onclick="closeModal()" class="px-4 py-2 rounded-lg text-gray-400 hover:bg-gray-700 transition text-sm">ຍົກເລີກ</button>
+                <button onclick="saveData()" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium transition text-sm">ບັນທຶກ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStatusTab = 'In progress';
+
+        // ຟັງຊັນປ່ຽນແທັບ (In progress, Hold, Close)
+        function switchTab(status) {
+            currentStatusTab = status;
+            ['In progress', 'Hold', 'Close'].forEach(s => {
+                const btn = document.getElementById(`tab-${s.replace(' ', '-')}`);
+                if (s === status) {
+                    btn.className = "flex-1 py-3 text-center font-medium rounded-lg bg-emerald-600 text-white transition shadow-md";
+                } else {
+                    btn.className = "flex-1 py-3 text-center font-medium rounded-lg text-gray-400 hover:text-gray-200 transition";
+                }
+            });
+            loadRealtimeData();
+        }
+
+        // ດຶງຂໍ້ມູນ Real-time ຈາກ Firebase
+        function loadRealtimeData() {
+            database.ref('projects').on('value', (snapshot) => {
+                const tbody = document.getElementById('table-body');
+                tbody.innerHTML = '';
+                let hasData = false;
+
+                snapshot.forEach((childSnapshot) => {
+                    const id = childSnapshot.key;
+                    const data = childSnapshot.val();
+
+                    if (data.status === currentStatusTab) {
+                        hasData = true;
+                        
+                        let priorityColor = 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+                        if (data.priority === 'High') priorityColor = 'text-red-400 bg-red-500/10 border-red-500/20';
+                        if (data.priority === 'Midium') priorityColor = 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+
+                        let typeColor = 'bg-gray-700 text-gray-300';
+                        if (data.pjType === 'MNT') typeColor = 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30';
+                        if (data.pjType === 'PPR') typeColor = 'bg-rose-600/20 text-rose-400 border border-rose-500/30';
+                        if (data.pjType === 'PRJ') typeColor = 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30';
+
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-gray-700/30 transition border-b border-gray-700/50">
+                                <td class="p-4 font-bold text-gray-200">${data.bank || '-'}</td>
+                                <td class="p-4 text-gray-400 font-mono">${data.pjId || '-'}</td>
+                                <td class="p-4 font-semibold text-emerald-400">${data.project || '-'}</td>
+                                <td class="p-4 text-gray-400 max-w-xs truncate hover:whitespace-normal whitespace-pre-line">${data.description || '-'}</td>
+                                <td class="p-4 text-gray-300 whitespace-pre-line">${data.currentStatus || '-'}</td>
+                                <td class="p-4 text-gray-300 whitespace-pre-line">${data.solutions || '-'}</td>
+                                <td class="p-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${typeColor}">${data.pjType || 'Other'}</span></td>
+                                <td class="p-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${priorityColor}">${data.priority || 'Low'}</span></td>
+                                <td class="p-4 text-gray-400">${data.actionBy || '-'}</td>
+                                <td class="p-4 text-gray-400 font-mono">${data.projectDate || '-'}</td>
+                                <td class="p-4 text-gray-400 font-mono">${data.targetDate || '-'}</td>
+                                <td class="p-4 text-gray-400">${data.reference || '-'}</td>
+                                <td class="p-4 text-center sticky right-0 bg-gray-800/90 shadow-md">
+                                    <button onclick="editData('${id}', ${JSON.stringify(data).replace(/"/g, '&quot;')})" class="text-emerald-500 hover:text-emerald-400 font-semibold underline">แก้ไข</button>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                });
+
+                if (!hasData) {
+                    tbody.innerHTML = `<tr><td colspan="13" class="p-8 text-center text-gray-500">ບໍ່ມີຂໍ້ມູນໃນໝວດນີ້</td></tr>`;
+                }
+            });
+        }
+
+        // ເປີດ Modal ເພື່ອເພີ່ມຂໍ້ມູນໃໝ່ (⚠️ ເຊື່ອງ Current Status & Solutions)
+        function openModal() {
+            document.getElementById('modal-title').innerText = "ເພີ່ມຂໍ້ມູນໂຄງການ";
+            document.getElementById('item-id').value = '';
+            document.getElementById('form-bank').value = 'BCEL'; 
+            document.getElementById('form-pj-id').value = '';
+            document.getElementById('form-project').value = '';
+            document.getElementById('form-description').value = '';
+            
+            // ລຶບຄ່າເກົ່າ ແລະ ເຊື່ອງສ່ວນ Current Status / Solutions
+            document.getElementById('form-current-status').value = '';
+            document.getElementById('form-solutions').value = '';
+            document.getElementById('status-solutions-section').classList.add('hidden');
+
+            document.getElementById('form-pj-type').value = 'PRJ';
+            document.getElementById('form-priority').value = 'Midium';
+            document.getElementById('form-status').value = currentStatusTab;
+            document.getElementById('form-action-by').value = '';
+            document.getElementById('form-reference').value = '';
+            document.getElementById('form-project-date').value = '';
+            document.getElementById('form-target-date').value = '';
+            document.getElementById('data-modal').classList.remove('hidden');
+        }
+
+        // ປິດ Modal
+        function closeModal() {
+            document.getElementById('data-modal').classList.add('hidden');
+        }
+
+        // ໂຫຼດຂໍ້ມູນຂຶ້ນຟອມເພື່ອແກ້ໄຂ (⚠️ ສະແດງ Current Status & Solutions ຄືເກົ່າ)
+        function editData(id, data) {
+            document.getElementById('modal-title').innerText = "ແກ້ໄຂຂໍ້ມູນໂຄງການ";
+            document.getElementById('item-id').value = id;
+            document.getElementById('form-bank').value = data.bank || 'BCEL';
+            document.getElementById('form-pj-id').value = data.pjId || '';
+            document.getElementById('form-project').value = data.project || '';
+            document.getElementById('form-description').value = data.description || '';
+            
+            // ໃສ່ຄ່າ ແລະ ເປີດໃຫ້ສະແດງສ່ວນ Current Status / Solutions
+            document.getElementById('form-current-status').value = data.currentStatus || '';
+            document.getElementById('form-solutions').value = data.solutions || '';
+            document.getElementById('status-solutions-section').classList.remove('hidden');
+
+            document.getElementById('form-pj-type').value = data.pjType || 'PRJ';
+            document.getElementById('form-priority').value = data.priority || 'Midium';
+            document.getElementById('form-status').value = data.status || 'In progress';
+            document.getElementById('form-action-by').value = data.actionBy || '';
+            document.getElementById('form-reference').value = data.reference || '';
+            document.getElementById('form-project-date').value = data.projectDate || '';
+            document.getElementById('form-target-date').value = data.targetDate || '';
+            document.getElementById('data-modal').classList.remove('hidden');
+        }
+
+        // ບັນທຶກ ຫຼື ອັບເດດຂໍ້ມູນ
+        function saveData() {
+            const id = document.getElementById('item-id').value;
+            const payload = {
+                bank: document.getElementById('form-bank').value,
+                pjId: document.getElementById('form-pj-id').value,
+                project: document.getElementById('form-project').value,
+                description: document.getElementById('form-description').value,
+                currentStatus: document.getElementById('form-current-status').value,
+                solutions: document.getElementById('form-solutions').value,
+                pjType: document.getElementById('form-pj-type').value,
+                priority: document.getElementById('form-priority').value,
+                status: document.getElementById('form-status').value,
+                actionBy: document.getElementById('form-action-by').value,
+                reference: document.getElementById('form-reference').value,
+                projectDate: document.getElementById('form-project-date').value,
+                targetDate: document.getElementById('form-target-date').value
+            };
+
+            if (id) {
+                database.ref('projects/' + id).update(payload)
+                    .then(() => { closeModal(); })
+                    .catch((error) => { alert("เกิดข้อผิดพลาด: " + error.message); });
+            } else {
+                database.ref('projects').push(payload)
+                    .then(() => { closeModal(); })
+                    .catch((error) => { alert("เกิดข้อผิดพลาด: " + error.message); });
+            }
+        }
+
+        // ຣັນດຶງຂໍ້ມູນຕອນເປີດເວັບ
+        loadRealtimeData();
+    </script>
+</body>
+</html>
