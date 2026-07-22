@@ -1,13 +1,26 @@
 // 1. Firebase configuration
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-    apiKey: "AIzaSyBmODvMgq46_hKkbIbyXI041GZ0tuicxZI",
-    authDomain: "software-report-dashboard.firebaseapp.com",
-    projectId: "software-report-dashboard",
-    storageBucket: "software-report-dashboard.firebasestorage.app",
-    messagingSenderId: "502005539016",
-    appId: "1:502005539016:web:23e901315469a0a42ac5fd",
-    measurementId: "G-QYYC564LDN"
+  apiKey: "AIzaSyDFQbOTJcJXPlq46gzxU4PMV9BbFG0LceY",
+  authDomain: "we-dashboard-20187.firebaseapp.com",
+  databaseURL: "https://we-dashboard-20187-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "we-dashboard-20187",
+  storageBucket: "we-dashboard-20187.firebasestorage.app",
+  messagingSenderId: "1024924941144",
+  appId: "1:1024924941144:web:20f6512cf37854e279c32d",
+  measurementId: "G-CFDR3LS1QY"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 // 2. Initialize Firebase or use Fallback Database
 let database = null;
