@@ -79,13 +79,30 @@ body.light-theme textarea::placeholder {
 body.light-theme h1,
 body.light-theme h2,
 body.light-theme h3,
-body.light-theme .text-white {
+body.light-theme .text-white,
+body.light-theme .text-gray-100,
+body.light-theme .text-gray-200 {
     color: #111827 !important;
 }
 
 body.light-theme .text-gray-300,
 body.light-theme .text-gray-400 {
     color: #374151 !important;
+}
+
+/* Light Theme Menu Tabs Styling */
+body.light-theme .bg-gray-900\/80 {
+    background-color: #e5e7eb !important; /* gray-200 */
+    border-color: #d1d5db !important;
+}
+
+body.light-theme .tab-inactive {
+    color: #4b5563 !important; /* gray-600 */
+}
+
+body.light-theme .tab-inactive:hover {
+    color: #111827 !important;
+    background-color: #d1d5db !important;
 }
 
 body.light-theme .text-gray-500 {

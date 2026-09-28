@@ -272,9 +272,9 @@ function switchTab(status) {
     ['In progress', 'Hold', 'Close'].forEach(s => {
         const btn = document.getElementById(`tab-${s.replace(' ', '-')}`);
         if (s === status) {
-            btn.className = "flex-1 lg:flex-none px-6 py-2.5 text-xs md:text-sm font-semibold rounded-lg bg-emerald-600 text-white transition shadow-md border border-emerald-500/30";
+            btn.className = "flex-1 lg:flex-none px-6 py-2.5 text-xs md:text-sm font-semibold rounded-lg bg-emerald-600 text-white transition shadow-md border border-emerald-500/30 tab-active";
         } else {
-            btn.className = "flex-1 lg:flex-none px-6 py-2.5 text-xs md:text-sm font-semibold rounded-lg text-gray-400 hover:text-gray-200 hover:bg-gray-700/50 transition";
+            btn.className = "flex-1 lg:flex-none px-6 py-2.5 text-xs md:text-sm font-semibold rounded-lg text-gray-400 hover:text-gray-200 hover:bg-gray-700/50 transition tab-inactive";
         }
     });
     loadRealtimeData();
@@ -421,6 +421,18 @@ function renderTable() {
         tbody.innerHTML = `<tr><td colspan="11" class="p-8 text-center text-gray-500 font-medium">No projects found matching the criteria.</td></tr>`;
         return;
     }
+
+    // Sort filtered items by Priority rank: High (1) -> Medium/Midium (2) -> Low (3)
+    const getPriorityRank = (p) => {
+        const priority = (p || '').toLowerCase();
+        if (priority === 'high') return 1;
+        if (priority === 'medium' || priority === 'midium') return 2;
+        return 3;
+    };
+
+    filtered.sort((a, b) => {
+        return getPriorityRank(a.data.priority) - getPriorityRank(b.data.priority);
+    });
 
     filtered.forEach(item => {
         const data = item.data;
