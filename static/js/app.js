@@ -3,7 +3,7 @@
 const firebaseConfig = {
   apiKey: "AIzaSyBmODvMgq46_hKkbIbyXI041GZ0tuicxZI",
   authDomain: "software-report-dashboard.firebaseapp.com",
-  databaseURL: "https://software-report-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app",
+  databaseURL: "https://software-report-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/",
   projectId: "software-report-dashboard",
   storageBucket: "software-report-dashboard.firebasestorage.app",
   messagingSenderId: "502005539016",

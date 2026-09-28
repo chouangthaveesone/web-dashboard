@@ -10,7 +10,7 @@ import { getAnalytics } from "firebase/analytics";
 const firebaseConfig = {
   apiKey: "AIzaSyDFQbOTJcJXPlq46gzxU4PMV9BbFG0LceY",
   authDomain: "we-dashboard-20187.firebaseapp.com",
-  databaseURL: "https://software-report-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  databaseURL: "https://we-dashboard-20187-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "we-dashboard-20187",
   storageBucket: "we-dashboard-20187.firebasestorage.app",
   messagingSenderId: "1024924941144",
