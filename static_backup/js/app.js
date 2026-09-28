@@ -1,4 +1,11 @@
 // 1. Firebase configuration
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyDFQbOTJcJXPlq46gzxU4PMV9BbFG0LceY",
@@ -10,6 +17,10 @@ const firebaseConfig = {
   appId: "1:1024924941144:web:20f6512cf37854e279c32d",
   measurementId: "G-CFDR3LS1QY"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 // 2. Initialize Firebase or use Fallback Database
 let database = null;
@@ -221,48 +232,17 @@ try {
     initializeDashboard();
 }
 
-// 4. Theme Management (Light theme by default)
-let currentTheme = localStorage.getItem('theme') || 'light';
-
-function applyTheme(theme) {
-    currentTheme = theme;
-    localStorage.setItem('theme', theme);
-    const body = document.body;
-    const btnIcon = document.getElementById('theme-toggle-icon');
-    const btnText = document.getElementById('theme-toggle-text');
-
-    if (theme === 'light') {
-        body.classList.add('light-theme');
-        if (btnIcon && btnText) {
-            btnIcon.className = "fa-solid fa-moon text-indigo-600 text-base";
-            btnText.innerText = "Dark Theme";
-        }
-    } else {
-        body.classList.remove('light-theme');
-        if (btnIcon && btnText) {
-            btnIcon.className = "fa-solid fa-sun text-amber-400 text-base";
-            btnText.innerText = "Light Theme";
-        }
-    }
-}
-
-function toggleTheme() {
-    const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
-    applyTheme(nextTheme);
-}
-
-// 5. State Management
+// 4. State Management
 let currentStatusTab = 'In progress';
 let allProjectsData = []; // Cached array of {id, data}
 
-// 6. Chart Instances
+// 5. Chart Instances
 let chartInProgressInstance = null;
 let chartHoldInstance = null;
 let chartCloseInstance = null;
 
-// 7. Setup / Initialize Dashboard
+// 6. Setup / Initialize Dashboard
 function initializeDashboard() {
-    applyTheme(currentTheme);
     switchTab('In progress');
 }
 
@@ -470,32 +450,6 @@ function renderTable() {
     });
 }
 
-// Helper to convert date strings (e.g. 25-May-26, 2026-05-25) to YYYY-MM-DD for date inputs
-function formatDateToInput(dateStr) {
-    if (!dateStr || !dateStr.trim()) return '';
-    const trimmed = dateStr.trim();
-    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
-
-    // Handle DD-MMM-YY or DD-MMM-YYYY e.g. 25-May-26 or 25-May-2026
-    const match = trimmed.match(/^(\d{1,2})[-/ ]([A-Za-z]{3})[-/ ](\d{2,4})$/);
-    if (match) {
-        const day = match[1].padStart(2, '0');
-        const monthStr = match[2].toLowerCase();
-        const yearStr = match[3];
-        const monthMap = {
-            jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
-            jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
-        };
-        const month = monthMap[monthStr] || '01';
-        let year = yearStr;
-        if (year.length === 2) {
-            year = '20' + year;
-        }
-        return `${year}-${month}-${day}`;
-    }
-    return trimmed;
-}
-
 // Helper to generate the prefix-style sequential ID based on Bank name
 function generateNextPjId(bank) {
     // 1. Determine prefix (first 3 letters capitalized)
@@ -561,7 +515,7 @@ function closeModal() {
     document.getElementById('data-modal').classList.add('hidden');
 }
 
-// Add event listeners for automatic bracket [ddMMM]: prefixing on weekly activity inputs
+// Add event listener to form-bank to update the generated ID automatically
 document.addEventListener('DOMContentLoaded', () => {
     const bankSelect = document.getElementById('form-bank');
     if (bankSelect) {
@@ -573,32 +527,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    // Auto add [15Oct]: prefix on typing in weekly activity textarea or quick input
-    const attachAutoBracket = (inputEl) => {
-        if (!inputEl) return;
-        inputEl.addEventListener('focus', () => {
-            if (!inputEl.value.trim()) {
-                inputEl.value = getCurrentDatePrefix();
-            }
-        });
-        inputEl.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                setTimeout(() => {
-                    const prefix = getCurrentDatePrefix();
-                    if (!inputEl.value.endsWith(prefix) && !inputEl.value.endsWith(prefix.trim())) {
-                        if (!inputEl.value.endsWith('\n')) {
-                            inputEl.value += '\n';
-                        }
-                        inputEl.value += prefix;
-                    }
-                }, 10);
-            }
-        });
-    };
-
-    attachAutoBracket(document.getElementById('quick-activity-input'));
-    attachAutoBracket(document.getElementById('form-weekly-activity'));
 });
 
 // Project Details SPA view state
@@ -621,7 +549,7 @@ function viewProjectDetails(id, data) {
     document.getElementById('detail-val-description').innerText = data.description || 'No description provided.';
     document.getElementById('detail-val-current-status').innerText = data.currentStatus || 'No current status logged.';
     document.getElementById('detail-val-solutions').innerText = data.solutions || 'No solution logged.';
-    document.getElementById('detail-val-weekly-activity').innerHTML = renderWeeklyActivityHTML(data.weeklyActivity);
+    document.getElementById('detail-val-weekly-activity').innerText = data.weeklyActivity || 'No activities logged yet.';
     document.getElementById('detail-val-pj-id').innerText = data.pjId || '-';
 
     // Priority Badge coloring
@@ -682,40 +610,6 @@ function closeProjectDetails() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Helper to format date prefix e.g. [15Oct]:
-function getCurrentDatePrefix() {
-    const date = new Date();
-    const day = String(date.getDate()).padStart(2, '0');
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const month = monthNames[date.getMonth()];
-    return `[${day}${month}]: `;
-}
-
-// Helper to escape HTML characters
-function escapeHTML(str) {
-    if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
-// Render weekly activity progress log separated line-by-line:
-// Last update in RED, previous updates in normal black color.
-function renderWeeklyActivityHTML(text) {
-    if (!text || !text.trim()) return '<span class="text-gray-400">-</span>';
-    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    if (lines.length === 0) return '<span class="text-gray-400">-</span>';
-
-    return lines.map((line, index) => {
-        const isLast = (index === lines.length - 1);
-        const colorClass = isLast ? 'text-red-600 font-bold' : 'text-black dark:text-gray-200';
-        return `<div class="${colorClass} my-1 py-0.5 border-b border-gray-200/20 last:border-0">${escapeHTML(line)}</div>`;
-    }).join('');
-}
-
 // Quick append weekly activity logic
 function quickAppendWeeklyActivity() {
     if (!activeDetailedProjectId || !activeDetailedProjectData) return;
@@ -727,14 +621,16 @@ function quickAppendWeeklyActivity() {
         return;
     }
 
-    const prefix = getCurrentDatePrefix();
-    let newEntry = valueText;
-    if (!valueText.startsWith('[')) {
-        newEntry = `${prefix}${valueText}`;
-    }
+    // Build automated date prefix like [09Jul]:
+    const date = new Date();
+    const day = String(date.getDate()).padStart(2, '0');
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = monthNames[date.getMonth()];
+    const prefix = `[${day}${month}]: `;
 
     // Create final appended text
     const currentActivity = activeDetailedProjectData.weeklyActivity || '';
+    const newEntry = `${prefix}${valueText}`;
     const updatedActivity = currentActivity 
         ? `${currentActivity}\n${newEntry}` 
         : newEntry;
@@ -746,7 +642,7 @@ function quickAppendWeeklyActivity() {
     .then(() => {
         // Dynamically update the cached data & render
         activeDetailedProjectData.weeklyActivity = updatedActivity;
-        document.getElementById('detail-val-weekly-activity').innerHTML = renderWeeklyActivityHTML(updatedActivity);
+        document.getElementById('detail-val-weekly-activity').innerText = updatedActivity;
         inputEl.value = '';
     })
     .catch((error) => {
@@ -779,8 +675,8 @@ function editData(id, data) {
     document.getElementById('form-action-by').value = data.actionBy || '';
     document.getElementById('form-pending-by').value = data.pendingBy || '';
     document.getElementById('form-reference').value = data.reference || '';
-    document.getElementById('form-project-date').value = formatDateToInput(data.projectDate);
-    document.getElementById('form-target-date').value = formatDateToInput(data.targetDate);
+    document.getElementById('form-project-date').value = data.projectDate || '';
+    document.getElementById('form-target-date').value = data.targetDate || '';
     document.getElementById('form-weekly-activity').value = data.weeklyActivity || '';
     document.getElementById('form-follow').value = data.follow || '';
     document.getElementById('form-remark').value = data.remark || '';

@@ -36,11 +36,6 @@
             </div>
             
             <div class="flex flex-wrap items-center gap-3">
-                <!-- Theme Toggle Button -->
-                <button id="theme-toggle-btn" onclick="toggleTheme()" class="bg-gray-700 hover:bg-gray-600 text-gray-100 border border-gray-600 px-4 py-2.5 rounded-lg font-semibold transition flex items-center gap-2 shadow-lg text-sm">
-                    <i id="theme-toggle-icon" class="fa-solid fa-moon text-amber-400 text-base"></i> <span id="theme-toggle-text">Dark Theme</span>
-                </button>
-
                 <!-- Export CSV Button -->
                 <button onclick="exportToCSV()" class="bg-gray-700 hover:bg-gray-600 text-gray-100 border border-gray-600 px-4 py-2.5 rounded-lg font-semibold transition flex items-center gap-2 shadow-lg text-sm">
                     <i class="fa-solid fa-file-csv text-emerald-400 text-base"></i> Export to CSV
@@ -462,11 +457,11 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Project Start Date</label>
-                    <input type="date" id="form-project-date" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition">
+                    <input type="text" id="form-project-date" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition" placeholder="e.g. 25-May-26 or YYYY-MM-DD">
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1">Target Date to Finish</label>
-                    <input type="date" id="form-target-date" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition">
+                    <input type="text" id="form-target-date" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition" placeholder="e.g. 17-Jul-26 or YYYY-MM-DD">
                 </div>
             </div>
 
