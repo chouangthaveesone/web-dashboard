@@ -5,7 +5,7 @@
 }
 
 ::-webkit-scrollbar-track {
-    background: #ffffff; /* gray-800 */
+    background: #1f2937; /* gray-800 */
 }
 
 ::-webkit-scrollbar-thumb {
@@ -31,4 +31,82 @@
     position: sticky;
     right: 0;
     z-index: 10;
+}
+
+/* Light Theme Overrides */
+body.light-theme {
+    background-color: #f3f4f6 !important; /* gray-100 */
+    color: #111827 !important; /* gray-900 */
+}
+
+body.light-theme header,
+body.light-theme #detail-view,
+body.light-theme #dashboard-view section,
+body.light-theme #data-modal > div,
+body.light-theme .bg-gray-800,
+body.light-theme #detail-val-description,
+body.light-theme #detail-val-current-status,
+body.light-theme #detail-val-solutions,
+body.light-theme .bg-gray-900\/50,
+body.light-theme .bg-gray-900\/60 {
+    background-color: #f9fafb !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+}
+
+body.light-theme .bg-gray-900,
+body.light-theme #table-body,
+body.light-theme #table-body tr,
+body.light-theme table thead tr {
+    background-color: #f9fafb !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+}
+
+body.light-theme input,
+body.light-theme select,
+body.light-theme textarea {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border-color: #d1d5db !important;
+}
+
+body.light-theme input::placeholder,
+body.light-theme textarea::placeholder {
+    color: #9ca3af !important;
+}
+
+body.light-theme h1,
+body.light-theme h2,
+body.light-theme h3,
+body.light-theme .text-white {
+    color: #111827 !important;
+}
+
+body.light-theme .text-gray-300,
+body.light-theme .text-gray-400 {
+    color: #374151 !important;
+}
+
+body.light-theme .text-gray-500 {
+    color: #6b7280 !important;
+}
+
+body.light-theme .border-gray-700,
+body.light-theme .border-gray-800 {
+    border-color: #e5e7eb !important;
+}
+
+body.light-theme #table-body tr:hover {
+    background-color: #f3f4f6 !important;
+}
+
+body.light-theme .bg-gray-700 {
+    background-color: #e5e7eb !important;
+    color: #1f2937 !important;
+    border-color: #d1d5db !important;
+}
+
+body.light-theme .bg-gray-700:hover {
+    background-color: #d1d5db !important;
 }

@@ -22,7 +22,7 @@
             appId: "1:502005539016:web:23e901315469a0a42ac5fd",
             measurementId: "G-QYYC564LDN"
         };
-        
+
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
@@ -41,7 +41,7 @@
     </header>
 
     <main class="max-w-[1600px] mx-auto p-4 md:p-6 space-y-6">
-        
+
         <div class="flex border-b border-gray-700 bg-gray-800 p-2 rounded-xl shadow-inner">
             <button onclick="switchTab('In progress')" id="tab-In-progress" class="flex-1 py-3 text-center font-medium rounded-lg bg-emerald-600 text-white transition shadow-md">In progress</button>
             <button onclick="switchTab('Hold')" id="tab-Hold" class="flex-1 py-3 text-center font-medium rounded-lg text-gray-400 hover:text-gray-200 transition">Hold</button>
@@ -82,7 +82,7 @@
         <div class="bg-gray-800 border border-gray-700 rounded-xl max-w-2xl w-full p-6 my-8 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <h3 id="modal-title" class="text-xl font-bold text-emerald-400 border-b border-gray-700 pb-2">ເພີ່ມຂໍ້ມູນໂຄງການ</h3>
             <input type="hidden" id="item-id">
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">ທະນາຄານ (Bank)</label>
@@ -210,7 +210,7 @@
 
                     if (data.status === currentStatusTab) {
                         hasData = true;
-                        
+
                         let priorityColor = 'text-blue-400 bg-blue-500/10 border-blue-500/20';
                         if (data.priority === 'High') priorityColor = 'text-red-400 bg-red-500/10 border-red-500/20';
                         if (data.priority === 'Midium') priorityColor = 'text-amber-400 bg-amber-500/10 border-amber-500/20';
@@ -252,11 +252,11 @@
         function openModal() {
             document.getElementById('modal-title').innerText = "ເພີ່ມຂໍ້ມູນໂຄງການ";
             document.getElementById('item-id').value = '';
-            document.getElementById('form-bank').value = 'BCEL'; 
+            document.getElementById('form-bank').value = 'BCEL';
             document.getElementById('form-pj-id').value = '';
             document.getElementById('form-project').value = '';
             document.getElementById('form-description').value = '';
-            
+
             // ລຶບຄ່າເກົ່າ ແລະ ເຊື່ອງສ່ວນ Current Status / Solutions
             document.getElementById('form-current-status').value = '';
             document.getElementById('form-solutions').value = '';
@@ -285,7 +285,7 @@
             document.getElementById('form-pj-id').value = data.pjId || '';
             document.getElementById('form-project').value = data.project || '';
             document.getElementById('form-description').value = data.description || '';
-            
+
             // ໃສ່ຄ່າ ແລະ ເປີດໃຫ້ສະແດງສ່ວນ Current Status / Solutions
             document.getElementById('form-current-status').value = data.currentStatus || '';
             document.getElementById('form-solutions').value = data.solutions || '';
